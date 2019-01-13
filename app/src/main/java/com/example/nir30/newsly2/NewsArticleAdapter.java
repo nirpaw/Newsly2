@@ -50,6 +50,7 @@ public class NewsArticleAdapter extends RecyclerView.Adapter<NewsArticleAdapter.
             Picasso.get()
                     .load(article.getImgUrl())
                     .resize(300, 200)
+                    .transform(new CircleTransform())
                     .into(holder.imgArticle);
         }
 
