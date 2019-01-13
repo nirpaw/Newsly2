@@ -10,7 +10,7 @@ public class NewsArticle {
     private String content;
 
     public NewsArticle(String autor, String title, String description, String url, String imgUrl, String publishedAt, String content) {
-        this.autor = autor;
+        setAutor(autor);
         this.title = title;
         this.description = description;
         this.url = url;
@@ -28,7 +28,13 @@ public class NewsArticle {
     }
 
     public void setAutor(String autor) {
-        this.autor = autor;
+        if (autor =="null"){
+            this.autor = "Website Team";
+        }
+        else {
+            this.autor = autor;
+
+        }
     }
 
     public String getTitle() {
@@ -76,6 +82,11 @@ public class NewsArticle {
     }
 
     public void setContent(String content) {
-        this.content = content.substring(0,content.length() - 13);
+        if(content.length() > 14) {
+            this.content = content.substring(0, content.length() - 13);
+        }
+        else {
+            this.content = content;
+        }
     }
 }

@@ -1,8 +1,5 @@
 package com.example.nir30.newsly2;
 
-import android.app.Activity;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -13,12 +10,11 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import java.util.Date;
 import java.util.List;
 
-public class NewsArticleAdapter extends RecyclerView.Adapter<NewsArticleAdapter.NewsArticleViewHolder>{
+public class SportNewsArticleAdapter extends RecyclerView.Adapter<SportNewsArticleAdapter.NewsArticleViewHolder>{
     private List<NewsArticle> newsArticles;
-    public NewsArticleAdapter( List<NewsArticle> newsArticles) {
+    public SportNewsArticleAdapter(List<NewsArticle> newsArticles) {
         this.newsArticles = newsArticles;
     }
 
@@ -37,7 +33,7 @@ public class NewsArticleAdapter extends RecyclerView.Adapter<NewsArticleAdapter.
     @NonNull
     @Override
     public NewsArticleViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.article_layout,viewGroup,false);
+        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout. sport_layout,viewGroup,false);
         NewsArticleViewHolder holder = new NewsArticleViewHolder(view);
         return holder;
     }
@@ -50,6 +46,7 @@ public class NewsArticleAdapter extends RecyclerView.Adapter<NewsArticleAdapter.
             Picasso.get()
                     .load(article.getImgUrl())
                     .resize(300, 200)
+                    .transform(new CircleTransform())
                     .into(holder.imgArticle);
         }
 

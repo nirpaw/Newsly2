@@ -24,13 +24,16 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity   {
     RecyclerView newsRecyclerView;
-    RecyclerView weatherRecyclerView;
+    RecyclerView sportRecyclerView;
     List<NewsArticle> newsArticles = new ArrayList<>();
+    List<NewsArticle> sportNewsArticles = new ArrayList<>();
 
     final  int SETTINGS_REQUEST = 1;
     boolean notificationCBIsEnable;
     int intervalNotificationInSec = -1;
+
     static final String NEWS_SOURCE ="mtv-news";
+    static final String SPORT_NEWS_SOURCE ="bbc-sport";
     static final String API_KEY ="13475800ebb34d37bd8f3590529cddee";
     static final String KEY_AUTHOR = "author";
     static final String KEY_TITLE = "title";
@@ -79,7 +82,29 @@ public class MainActivity extends AppCompatActivity   {
         setContentView(R.layout.activity_main);
 
         final  int SETTINGS_REQUEST = 1;
+        sportRecyclerView = findViewById(R.id.news_sport_recycler);
+        sportRecyclerView.addOnItemTouchListener(
+                new RecyclerItemClickListener(this, sportRecyclerView, new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override public void onItemClick(View view, int position) {
+                        Intent intent = new Intent(MainActivity.this, ShowArticleActivity.class);
+                        intent.putExtra("title_extra", sportNewsArticles.get(position).getTitle());
+                        intent.putExtra("content_extra", sportNewsArticles.get(position).getContent());
+                        intent.putExtra("imgurl_extra", sportNewsArticles.get(position).getImgUrl());
+                        intent.putExtra("url_extra", sportNewsArticles.get(position).getUrl());
+                        intent.putExtra("author_extra", sportNewsArticles.get(position).getAutor());
+                        intent.putExtra("publishedAt_extra", sportNewsArticles.get(position).getPublishedAt());
+                        startActivity(intent);
+                    }
 
+                    @Override public void onLongItemClick(View view, int position) {
+                        Intent sendIntent = new Intent();
+                        sendIntent.setAction(Intent.ACTION_SEND);
+                        sendIntent.putExtra(Intent.EXTRA_TEXT, newsArticles.get(position).getTitle() +": " +newsArticles.get(position).getUrl() );
+                        sendIntent.setType("text/plain");
+                        startActivity(sendIntent);
+                    }
+                })
+        );
         newsRecyclerView = findViewById(R.id.news_recycler);
         newsRecyclerView.addOnItemTouchListener(
                 new RecyclerItemClickListener(this, newsRecyclerView,new RecyclerItemClickListener.OnItemClickListener() {
@@ -105,11 +130,16 @@ public class MainActivity extends AppCompatActivity   {
         );
         newsRecyclerView.setHasFixedSize(true);
         newsRecyclerView.setLayoutManager(new GridLayoutManager(this,1));
+        sportRecyclerView.setHasFixedSize(true);
+        sportRecyclerView.setLayoutManager(new GridLayoutManager(this,1, GridLayoutManager.HORIZONTAL, false));
 
         if(Function.isNetworkAvailable(getApplicationContext()))
         {
             DownloadNews newsTask = new DownloadNews();
             newsTask.execute();
+            DownloadSportNews sportNewsTask = new DownloadSportNews();
+            sportNewsTask.execute();
+
         }else{
             Toast.makeText(getApplicationContext(), "No Internet Connection", Toast.LENGTH_LONG).show();
         }
@@ -122,16 +152,18 @@ public class MainActivity extends AppCompatActivity   {
         protected void onPreExecute() {
             super.onPreExecute();
         }
+
         protected String doInBackground(String... args) {
             String xml = "";
             String urlParameters = "";
-            xml = Function.excuteGet("https://newsapi.org/v2/everything?sources="+NEWS_SOURCE+"&apiKey="+API_KEY, urlParameters);
-            return  xml;
+            xml = Function.excuteGet("https://newsapi.org/v2/everything?sources=" + NEWS_SOURCE + "&apiKey=" + API_KEY, urlParameters);
+            return xml;
         }
+
         @Override
         protected void onPostExecute(String xml) {
 
-            if(xml.length()>10){
+            if (xml.length() > 10) {
 
                 try {
                     JSONObject jsonResponse = new JSONObject(xml);
@@ -140,20 +172,21 @@ public class MainActivity extends AppCompatActivity   {
                     for (int i = 0; i < jsonArray.length(); i++) {
                         JSONObject jsonObject = jsonArray.getJSONObject(i);
                         HashMap<String, String> map = new HashMap<String, String>();
-                        String autor =  jsonObject.optString(KEY_AUTHOR).toString();
-                        String title =  jsonObject.optString(KEY_TITLE).toString();
-                        String description =  jsonObject.optString(KEY_DESCRIPTION).toString();
-                        String url =  jsonObject.optString(KEY_URL).toString();
-                        String imgurl =  jsonObject.optString(KEY_URLTOIMAGE).toString();
-                        String date =  jsonObject.optString(KEY_PUBLISHEDAT).toString();
-                        String content =  jsonObject.optString(KEY_CONTENT).toString();
-                        newsArticles.add(new NewsArticle(autor, title, description, url,imgurl, date, content  ));
+                        String autor = jsonObject.optString(KEY_AUTHOR).toString();
+                        String title = jsonObject.optString(KEY_TITLE).toString();
+                        String description = jsonObject.optString(KEY_DESCRIPTION).toString();
+                        String url = jsonObject.optString(KEY_URL).toString();
+                        String imgurl = jsonObject.optString(KEY_URLTOIMAGE).toString();
+                        String date = jsonObject.optString(KEY_PUBLISHEDAT).toString();
+                        String content = jsonObject.optString(KEY_CONTENT).toString();
+                        newsArticles.add(new NewsArticle(autor, title, description, url, imgurl, date, content));
                     }
                 } catch (JSONException e) {
                     Toast.makeText(getApplicationContext(), "Unexpected error", Toast.LENGTH_SHORT).show();
                 }
                 NewsArticleAdapter newsArticleAdapter = new NewsArticleAdapter(newsArticles);
                 newsRecyclerView.setAdapter(newsArticleAdapter);
+
 
 //                ListNewsAdapter adapter = new ListNewsAdapter(MainActivity.this, dataList);
 //                listNews.setAdapter(adapter);
@@ -167,16 +200,59 @@ public class MainActivity extends AppCompatActivity   {
 //                    }
 //                });
 
-            }else{
+            } else {
                 Toast.makeText(getApplicationContext(), "No news found", Toast.LENGTH_SHORT).show();
             }
         }
 
-
-
-
-
     }
+        class DownloadSportNews extends AsyncTask<String, Void, String> {
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+            }
+
+            protected String doInBackground(String... args) {
+                String xml = "";
+                String urlParameters = "";
+                xml = Function.excuteGet("https://newsapi.org/v2/everything?sources=" + SPORT_NEWS_SOURCE + "&apiKey=" + API_KEY, urlParameters);
+                return xml;
+            }
+
+            @Override
+            protected void onPostExecute(String xml) {
+
+                if (xml.length() > 10) {
+
+                    try {
+                        JSONObject jsonResponse = new JSONObject(xml);
+                        JSONArray jsonArray = jsonResponse.optJSONArray("articles");
+
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject jsonObject = jsonArray.getJSONObject(i);
+                            HashMap<String, String> map = new HashMap<String, String>();
+                            String autor = jsonObject.optString(KEY_AUTHOR).toString();
+                            String title = jsonObject.optString(KEY_TITLE).toString();
+                            String description = jsonObject.optString(KEY_DESCRIPTION).toString();
+                            String url = jsonObject.optString(KEY_URL).toString();
+                            String imgurl = jsonObject.optString(KEY_URLTOIMAGE).toString();
+                            String date = jsonObject.optString(KEY_PUBLISHEDAT).toString();
+                            String content = jsonObject.optString(KEY_CONTENT).toString();
+                            sportNewsArticles.add(new NewsArticle(autor, title, description, url, imgurl, date, content));
+                        }
+                    } catch (JSONException e) {
+                        Toast.makeText(getApplicationContext(), "Unexpected error", Toast.LENGTH_SHORT).show();
+                    }
+                    SportNewsArticleAdapter sportNewsArticleAdapter = new SportNewsArticleAdapter(sportNewsArticles);
+                    sportRecyclerView.setAdapter(sportNewsArticleAdapter);
+                    
+
+                } else {
+                    Toast.makeText(getApplicationContext(), "No news found", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+
+        }
 
 }
-
