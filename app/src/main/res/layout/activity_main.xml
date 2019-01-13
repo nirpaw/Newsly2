@@ -5,17 +5,20 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root_layout">
 
-        <android.support.v7.widget.RecyclerView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/news_recycler"
-            android:layout_weight="3">
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/news_recycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="3">
 
-        </android.support.v7.widget.RecyclerView>
-    <LinearLayout
+    </android.support.v7.widget.RecyclerView>
+
+    <android.support.v7.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="10"
-        android:background="@drawable/gradarticle"></LinearLayout>
-    </LinearLayout>
+        android:orientation="horizontal">
 
+    </android.support.v7.widget.RecyclerView>
+
+</LinearLayout>

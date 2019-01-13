@@ -1,11 +1,10 @@
 package com.example.nir30.newsly2;
 
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.Animatable;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -13,7 +12,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -25,11 +23,13 @@ import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity   {
-    RecyclerView recyclerView;
+    RecyclerView newsRecyclerView;
+    RecyclerView weatherRecyclerView;
     List<NewsArticle> newsArticles = new ArrayList<>();
 
     final  int SETTINGS_REQUEST = 1;
-
+    boolean notificationCBIsEnable;
+    int intervalNotificationInSec = -1;
     static final String NEWS_SOURCE ="mtv-news";
     static final String API_KEY ="13475800ebb34d37bd8f3590529cddee";
     static final String KEY_AUTHOR = "author";
@@ -39,6 +39,8 @@ public class MainActivity extends AppCompatActivity   {
     static final String KEY_URLTOIMAGE = "urlToImage";
     static final String KEY_PUBLISHEDAT = "publishedAt";
     static final String KEY_CONTENT = "content";
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -58,7 +60,15 @@ public class MainActivity extends AppCompatActivity   {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if(requestCode == SETTINGS_REQUEST)
         {
-            // DO THE NOTIFICATION
+            SharedPreferences  sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this );
+            notificationCBIsEnable = sharedPreferences.getBoolean("pref_checkbox" , false);
+            if(notificationCBIsEnable)
+            {
+                SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+                String intervalStr = sp.getString("list_interval","-1");
+                intervalNotificationInSec = Integer.parseInt(intervalStr);
+                Toast.makeText(this, intervalNotificationInSec +"", Toast.LENGTH_SHORT).show();
+            }
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -70,9 +80,9 @@ public class MainActivity extends AppCompatActivity   {
 
         final  int SETTINGS_REQUEST = 1;
 
-        recyclerView = findViewById(R.id.news_recycler);
-        recyclerView.addOnItemTouchListener(
-                new RecyclerItemClickListener(this, recyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
+        newsRecyclerView = findViewById(R.id.news_recycler);
+        newsRecyclerView.addOnItemTouchListener(
+                new RecyclerItemClickListener(this, newsRecyclerView,new RecyclerItemClickListener.OnItemClickListener() {
                     @Override public void onItemClick(View view, int position) {
                         Intent intent = new Intent(MainActivity.this, ShowArticleActivity.class);
                         intent.putExtra("title_extra", newsArticles.get(position).getTitle());
@@ -93,8 +103,8 @@ public class MainActivity extends AppCompatActivity   {
                     }
                 })
         );
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new GridLayoutManager(this,1));
+        newsRecyclerView.setHasFixedSize(true);
+        newsRecyclerView.setLayoutManager(new GridLayoutManager(this,1));
 
         if(Function.isNetworkAvailable(getApplicationContext()))
         {
@@ -143,7 +153,7 @@ public class MainActivity extends AppCompatActivity   {
                     Toast.makeText(getApplicationContext(), "Unexpected error", Toast.LENGTH_SHORT).show();
                 }
                 NewsArticleAdapter newsArticleAdapter = new NewsArticleAdapter(newsArticles);
-                recyclerView.setAdapter(newsArticleAdapter);
+                newsRecyclerView.setAdapter(newsArticleAdapter);
 
 //                ListNewsAdapter adapter = new ListNewsAdapter(MainActivity.this, dataList);
 //                listNews.setAdapter(adapter);
@@ -161,6 +171,8 @@ public class MainActivity extends AppCompatActivity   {
                 Toast.makeText(getApplicationContext(), "No news found", Toast.LENGTH_SHORT).show();
             }
         }
+
+
 
 
 

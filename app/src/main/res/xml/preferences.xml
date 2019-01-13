@@ -10,7 +10,7 @@
             android:title="Send me push notfication every"
             android:entryValues="@array/intervals_valuse"
             android:entries="@array/intervals"
-            android:key="list_interval"/>
+            android:key="list_interval" />
 
     </PreferenceCategory>
 </PreferenceScreen>
