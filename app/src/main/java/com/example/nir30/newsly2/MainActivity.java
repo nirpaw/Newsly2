@@ -1,6 +1,8 @@
 package com.example.nir30.newsly2;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.Animatable;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -40,6 +42,12 @@ public class MainActivity extends AppCompatActivity {
                 new RecyclerItemClickListener(this, recyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
                     @Override public void onItemClick(View view, int position) {
                         Intent intent = new Intent(MainActivity.this, ShowArticleActivity.class);
+                        intent.putExtra("title_extra", newsArticles.get(position).getTitle());
+                        intent.putExtra("content_extra", newsArticles.get(position).getContent());
+                        intent.putExtra("imgurl_extra", newsArticles.get(position).getImgUrl());
+                        intent.putExtra("url_extra", newsArticles.get(position).getUrl());
+                        intent.putExtra("author_extra", newsArticles.get(position).getAutor());
+                        intent.putExtra("publishedAt_extra", newsArticles.get(position).getPublishedAt());
                         startActivity(intent);
                     }
 

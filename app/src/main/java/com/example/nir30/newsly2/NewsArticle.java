@@ -16,7 +16,7 @@ public class NewsArticle {
         this.url = url;
         this.imgUrl = imgUrl;
         setPublishedAt(publishedAt);
-        this.content = content;
+        setContent(content);
     }
 
     public NewsArticle(String title) {
@@ -76,6 +76,6 @@ public class NewsArticle {
     }
 
     public void setContent(String content) {
-        this.content = content;
+        this.content = content.substring(0,content.length() - 13);
     }
 }
