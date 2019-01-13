@@ -9,6 +9,16 @@ public class NewsArticle {
     private String publishedAt;
     private String content;
 
+    public NewsArticle(String autor, String title, String description, String url, String imgUrl, String publishedAt, String content) {
+        this.autor = autor;
+        this.title = title;
+        this.description = description;
+        this.url = url;
+        this.imgUrl = imgUrl;
+        setPublishedAt(publishedAt);
+        this.content = content;
+    }
+
     public NewsArticle(String title) {
         this.title = title;
     }
@@ -58,7 +68,7 @@ public class NewsArticle {
     }
 
     public void setPublishedAt(String publishedAt) {
-        this.publishedAt = publishedAt;
+        this.publishedAt = publishedAt.substring(0,10);
     }
 
     public String getContent() {

@@ -1,5 +1,6 @@
 package com.example.nir30.newsly2;
 
+import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
@@ -12,12 +13,12 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.Date;
 import java.util.List;
 
 public class NewsArticleAdapter extends RecyclerView.Adapter<NewsArticleAdapter.NewsArticleViewHolder>{
     private List<NewsArticle> newsArticles;
-
-    public NewsArticleAdapter(List<NewsArticle> newsArticles) {
+    public NewsArticleAdapter( List<NewsArticle> newsArticles) {
         this.newsArticles = newsArticles;
     }
 
@@ -45,8 +46,12 @@ public class NewsArticleAdapter extends RecyclerView.Adapter<NewsArticleAdapter.
     public void onBindViewHolder(@NonNull NewsArticleViewHolder holder, int i) {
         NewsArticle article  = newsArticles.get(i);
         holder.titleArticle.setText(article.getTitle());
-
-    }
+        holder.dateArticle.setText(article.getPublishedAt());
+            Picasso.get()
+                    .load(article.getImgUrl())
+                    .resize(300, 200)
+                    .into(holder.imgArticle);
+        }
 
     @Override
     public int getItemCount() {
