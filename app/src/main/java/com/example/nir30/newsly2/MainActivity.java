@@ -1,5 +1,9 @@
 package com.example.nir30.newsly2;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -43,8 +47,6 @@ public class MainActivity extends AppCompatActivity   {
     static final String KEY_PUBLISHEDAT = "publishedAt";
     static final String KEY_CONTENT = "content";
 
-
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_show_article,menu);
@@ -70,6 +72,7 @@ public class MainActivity extends AppCompatActivity   {
                 SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
                 String intervalStr = sp.getString("list_interval","-1");
                 intervalNotificationInSec = Integer.parseInt(intervalStr);
+
                 Toast.makeText(this, intervalNotificationInSec +"", Toast.LENGTH_SHORT).show();
             }
         }
@@ -164,7 +167,6 @@ public class MainActivity extends AppCompatActivity   {
         protected void onPostExecute(String xml) {
 
             if (xml.length() > 10) {
-
                 try {
                     JSONObject jsonResponse = new JSONObject(xml);
                     JSONArray jsonArray = jsonResponse.optJSONArray("articles");
@@ -204,7 +206,6 @@ public class MainActivity extends AppCompatActivity   {
                 Toast.makeText(getApplicationContext(), "No news found", Toast.LENGTH_SHORT).show();
             }
         }
-
     }
         class DownloadSportNews extends AsyncTask<String, Void, String> {
             @Override
@@ -245,7 +246,7 @@ public class MainActivity extends AppCompatActivity   {
                     }
                     SportNewsArticleAdapter sportNewsArticleAdapter = new SportNewsArticleAdapter(sportNewsArticles);
                     sportRecyclerView.setAdapter(sportNewsArticleAdapter);
-                    
+
 
                 } else {
                     Toast.makeText(getApplicationContext(), "No news found", Toast.LENGTH_SHORT).show();
@@ -254,5 +255,22 @@ public class MainActivity extends AppCompatActivity   {
 
 
         }
+
+    public class AlarmBroadcastReceiver extends BroadcastReceiver {
+
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+        }
+    }
+
+    public static void startAlarmBroadcastReceiver(Context context, long delay) {
+        Intent _intent = new Intent(context, AlarmBroadcastReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, _intent, 0);
+        AlarmManager alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+        // Remove any previous pending intent.
+        alarmManager.cancel(pendingIntent);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + delay, pendingIntent);
+    }
 
 }
