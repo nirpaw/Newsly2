@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Animatable;
 import android.os.AsyncTask;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -22,9 +24,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity   {
     RecyclerView recyclerView;
     List<NewsArticle> newsArticles = new ArrayList<>();
+
+    final  int SETTINGS_REQUEST = 1;
 
     static final String NEWS_SOURCE ="mtv-news";
     static final String API_KEY ="13475800ebb34d37bd8f3590529cddee";
@@ -44,13 +48,28 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == R.id.action_settings) {
+            startActivityForResult(new Intent(this , SettingsActivity.class),SETTINGS_REQUEST);
+        }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if(requestCode == SETTINGS_REQUEST)
+        {
+            // DO THE NOTIFICATION
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        final  int SETTINGS_REQUEST = 1;
+
         recyclerView = findViewById(R.id.news_recycler);
         recyclerView.addOnItemTouchListener(
                 new RecyclerItemClickListener(this, recyclerView ,new RecyclerItemClickListener.OnItemClickListener() {

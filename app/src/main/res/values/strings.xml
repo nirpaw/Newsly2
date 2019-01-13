@@ -91,4 +91,20 @@
         "when a user tries to pick up one of cards.\n\n"
     </string>
     <string name="action_settings">Settings</string>
+
+    <string-array name="intervals">
+        <item>30 Sec</item>
+        <item>1 Min</item>
+        <item>1 Day</item>
+        <item>1 Week</item>
+        <item>Never</item>
+    </string-array>
+
+    <string-array name="intervals_valuse">
+        <item>30</item>
+        <item>60</item>
+        <item>86400</item>
+        <item>604800</item>
+        <item>Never</item>
+    </string-array>
 </resources>

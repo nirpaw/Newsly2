@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="Notification">
+        <CheckBoxPreference
+            android:title="Allow push notification"
+            android:summary="We will never send you spam"
+            android:key="pref_checkbox"/>
+        <ListPreference
+            android:title="Send me push notfication every"
+            android:entryValues="@array/intervals_valuse"
+            android:entries="@array/intervals"
+            android:key="list_interval"/>
+
+    </PreferenceCategory>
+</PreferenceScreen>
