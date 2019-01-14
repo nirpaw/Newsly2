@@ -7,10 +7,17 @@
             android:summary="We will never send you spam"
             android:key="pref_checkbox"/>
         <ListPreference
-            android:title="Send me push notfication every"
+            android:title="Send me push notfication every:"
             android:entryValues="@array/intervals_valuse"
             android:entries="@array/intervals"
-            android:key="list_interval" />
-
+            android:key="list_interval"
+            android:defaultValue="0"/>
+        <ListPreference
+            android:title="Sent me Notification about:"
+            android:entryValues="@array/subject_value"
+            android:entries="@array/subject"
+            android:key="list_kind"
+            android:defaultValue="0"/>
     </PreferenceCategory>
+
 </PreferenceScreen>

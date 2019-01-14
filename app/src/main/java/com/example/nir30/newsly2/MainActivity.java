@@ -1,22 +1,42 @@
 package com.example.nir30.newsly2;
 
 import android.app.AlarmManager;
+import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.media.RingtoneManager;
 import android.os.AsyncTask;
+import android.os.Build;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.content.WakefulBroadcastReceiver;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
+
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,20 +45,21 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Logger;
 
-public class MainActivity extends AppCompatActivity   {
+public class MainActivity extends AppCompatActivity {
     RecyclerView newsRecyclerView;
     RecyclerView sportRecyclerView;
     List<NewsArticle> newsArticles = new ArrayList<>();
     List<NewsArticle> sportNewsArticles = new ArrayList<>();
-
-    final  int SETTINGS_REQUEST = 1;
+    Bitmap pic;
+    final int SETTINGS_REQUEST = 1;
     boolean notificationCBIsEnable;
     int intervalNotificationInSec = -1;
 
-    static final String NEWS_SOURCE ="mtv-news";
-    static final String SPORT_NEWS_SOURCE ="bbc-sport";
-    static final String API_KEY ="13475800ebb34d37bd8f3590529cddee";
+    static final String NEWS_SOURCE = "mtv-news";
+    static final String SPORT_NEWS_SOURCE = "bbc-sport";
+    static final String API_KEY = "13475800ebb34d37bd8f3590529cddee";
     static final String KEY_AUTHOR = "author";
     static final String KEY_TITLE = "title";
     static final String KEY_DESCRIPTION = "description";
@@ -49,31 +70,34 @@ public class MainActivity extends AppCompatActivity   {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_show_article,menu);
+        getMenuInflater().inflate(R.menu.menu_show_article, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.action_settings) {
-            startActivityForResult(new Intent(this , SettingsActivity.class),SETTINGS_REQUEST);
+        if (item.getItemId() == R.id.action_settings) {
+            startActivityForResult(new Intent(this, SettingsActivity.class), SETTINGS_REQUEST);
         }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if(requestCode == SETTINGS_REQUEST)
-        {
-            SharedPreferences  sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this );
-            notificationCBIsEnable = sharedPreferences.getBoolean("pref_checkbox" , false);
-            if(notificationCBIsEnable)
-            {
+        if (requestCode == SETTINGS_REQUEST) {
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+            notificationCBIsEnable = sharedPreferences.getBoolean("pref_checkbox", false);
+            if (notificationCBIsEnable) {
+                // delete
                 SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-                String intervalStr = sp.getString("list_interval","-1");
+                String intervalStr = sp.getString("list_interval", "-1");
                 intervalNotificationInSec = Integer.parseInt(intervalStr);
+                //
 
-                Toast.makeText(this, intervalNotificationInSec +"", Toast.LENGTH_SHORT).show();
+                startAlarm(MainActivity.this,1);
+            //    startAlarmBroadcastReceiver(this, 2);
+             //   showNotification(MainActivity.this ,  new Intent());
+                Toast.makeText(this, intervalNotificationInSec + "", Toast.LENGTH_SHORT).show();
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
@@ -83,12 +107,12 @@ public class MainActivity extends AppCompatActivity   {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        final  int SETTINGS_REQUEST = 1;
+        final int SETTINGS_REQUEST = 1;
         sportRecyclerView = findViewById(R.id.news_sport_recycler);
         sportRecyclerView.addOnItemTouchListener(
                 new RecyclerItemClickListener(this, sportRecyclerView, new RecyclerItemClickListener.OnItemClickListener() {
-                    @Override public void onItemClick(View view, int position) {
+                    @Override
+                    public void onItemClick(View view, int position) {
                         Intent intent = new Intent(MainActivity.this, ShowArticleActivity.class);
                         intent.putExtra("title_extra", sportNewsArticles.get(position).getTitle());
                         intent.putExtra("content_extra", sportNewsArticles.get(position).getContent());
@@ -99,10 +123,11 @@ public class MainActivity extends AppCompatActivity   {
                         startActivity(intent);
                     }
 
-                    @Override public void onLongItemClick(View view, int position) {
+                    @Override
+                    public void onLongItemClick(View view, int position) {
                         Intent sendIntent = new Intent();
                         sendIntent.setAction(Intent.ACTION_SEND);
-                        sendIntent.putExtra(Intent.EXTRA_TEXT, newsArticles.get(position).getTitle() +": " +newsArticles.get(position).getUrl() );
+                        sendIntent.putExtra(Intent.EXTRA_TEXT, newsArticles.get(position).getTitle() + ": " + newsArticles.get(position).getUrl());
                         sendIntent.setType("text/plain");
                         startActivity(sendIntent);
                     }
@@ -110,8 +135,9 @@ public class MainActivity extends AppCompatActivity   {
         );
         newsRecyclerView = findViewById(R.id.news_recycler);
         newsRecyclerView.addOnItemTouchListener(
-                new RecyclerItemClickListener(this, newsRecyclerView,new RecyclerItemClickListener.OnItemClickListener() {
-                    @Override public void onItemClick(View view, int position) {
+                new RecyclerItemClickListener(this, newsRecyclerView, new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
                         Intent intent = new Intent(MainActivity.this, ShowArticleActivity.class);
                         intent.putExtra("title_extra", newsArticles.get(position).getTitle());
                         intent.putExtra("content_extra", newsArticles.get(position).getContent());
@@ -122,31 +148,30 @@ public class MainActivity extends AppCompatActivity   {
                         startActivity(intent);
                     }
 
-                    @Override public void onLongItemClick(View view, int position) {
+                    @Override
+                    public void onLongItemClick(View view, int position) {
                         Intent sendIntent = new Intent();
                         sendIntent.setAction(Intent.ACTION_SEND);
-                        sendIntent.putExtra(Intent.EXTRA_TEXT, newsArticles.get(position).getTitle() +": " +newsArticles.get(position).getUrl() );
+                        sendIntent.putExtra(Intent.EXTRA_TEXT, newsArticles.get(position).getTitle() + ": " + newsArticles.get(position).getUrl());
                         sendIntent.setType("text/plain");
                         startActivity(sendIntent);
                     }
                 })
         );
         newsRecyclerView.setHasFixedSize(true);
-        newsRecyclerView.setLayoutManager(new GridLayoutManager(this,1));
+        newsRecyclerView.setLayoutManager(new GridLayoutManager(this, 1));
         sportRecyclerView.setHasFixedSize(true);
-        sportRecyclerView.setLayoutManager(new GridLayoutManager(this,1, GridLayoutManager.HORIZONTAL, false));
+        sportRecyclerView.setLayoutManager(new GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false));
 
-        if(Function.isNetworkAvailable(getApplicationContext()))
-        {
+        if (Function.isNetworkAvailable(getApplicationContext())) {
             DownloadNews newsTask = new DownloadNews();
             newsTask.execute();
             DownloadSportNews sportNewsTask = new DownloadSportNews();
             sportNewsTask.execute();
 
-        }else{
+        } else {
             Toast.makeText(getApplicationContext(), "No Internet Connection", Toast.LENGTH_LONG).show();
         }
-
     }
 
 
@@ -207,64 +232,63 @@ public class MainActivity extends AppCompatActivity   {
             }
         }
     }
-        class DownloadSportNews extends AsyncTask<String, Void, String> {
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-            }
 
-            protected String doInBackground(String... args) {
-                String xml = "";
-                String urlParameters = "";
-                xml = Function.excuteGet("https://newsapi.org/v2/everything?sources=" + SPORT_NEWS_SOURCE + "&apiKey=" + API_KEY, urlParameters);
-                return xml;
-            }
-
-            @Override
-            protected void onPostExecute(String xml) {
-
-                if (xml.length() > 10) {
-
-                    try {
-                        JSONObject jsonResponse = new JSONObject(xml);
-                        JSONArray jsonArray = jsonResponse.optJSONArray("articles");
-
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            JSONObject jsonObject = jsonArray.getJSONObject(i);
-                            HashMap<String, String> map = new HashMap<String, String>();
-                            String autor = jsonObject.optString(KEY_AUTHOR).toString();
-                            String title = jsonObject.optString(KEY_TITLE).toString();
-                            String description = jsonObject.optString(KEY_DESCRIPTION).toString();
-                            String url = jsonObject.optString(KEY_URL).toString();
-                            String imgurl = jsonObject.optString(KEY_URLTOIMAGE).toString();
-                            String date = jsonObject.optString(KEY_PUBLISHEDAT).toString();
-                            String content = jsonObject.optString(KEY_CONTENT).toString();
-                            sportNewsArticles.add(new NewsArticle(autor, title, description, url, imgurl, date, content));
-                        }
-                    } catch (JSONException e) {
-                        Toast.makeText(getApplicationContext(), "Unexpected error", Toast.LENGTH_SHORT).show();
-                    }
-                    SportNewsArticleAdapter sportNewsArticleAdapter = new SportNewsArticleAdapter(sportNewsArticles);
-                    sportRecyclerView.setAdapter(sportNewsArticleAdapter);
-
-
-                } else {
-                    Toast.makeText(getApplicationContext(), "No news found", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-
+    class DownloadSportNews extends AsyncTask<String, Void, String> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
         }
 
-    public class AlarmBroadcastReceiver extends BroadcastReceiver {
-
+        protected String doInBackground(String... args) {
+            String xml = "";
+            String urlParameters = "";
+            xml = Function.excuteGet("https://newsapi.org/v2/everything?sources=" + SPORT_NEWS_SOURCE + "&apiKey=" + API_KEY, urlParameters);
+            return xml;
+        }
 
         @Override
-        public void onReceive(Context context, Intent intent) {
+        protected void onPostExecute(String xml) {
+
+            if (xml.length() > 10) {
+
+                try {
+                    JSONObject jsonResponse = new JSONObject(xml);
+                    JSONArray jsonArray = jsonResponse.optJSONArray("articles");
+
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        HashMap<String, String> map = new HashMap<String, String>();
+                        String autor = jsonObject.optString(KEY_AUTHOR).toString();
+                        String title = jsonObject.optString(KEY_TITLE).toString();
+                        String description = jsonObject.optString(KEY_DESCRIPTION).toString();
+                        String url = jsonObject.optString(KEY_URL).toString();
+                        String imgurl = jsonObject.optString(KEY_URLTOIMAGE).toString();
+                        String date = jsonObject.optString(KEY_PUBLISHEDAT).toString();
+                        String content = jsonObject.optString(KEY_CONTENT).toString();
+                        sportNewsArticles.add(new NewsArticle(autor, title, description, url, imgurl, date, content));
+                    }
+                } catch (JSONException e) {
+                    Toast.makeText(getApplicationContext(), "Unexpected error", Toast.LENGTH_SHORT).show();
+                }
+                SportNewsArticleAdapter sportNewsArticleAdapter = new SportNewsArticleAdapter(sportNewsArticles);
+                sportRecyclerView.setAdapter(sportNewsArticleAdapter);
+
+
+            } else {
+                Toast.makeText(getApplicationContext(), "No news found", Toast.LENGTH_SHORT).show();
+            }
         }
+
+
     }
 
-    public static void startAlarmBroadcastReceiver(Context context, long delay) {
+    public void myStartAlarm(){
+
+    }
+    public  void startAlarmBroadcastReceiver(Context context, long delay) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        String intervalStr = sp.getString("list_interval", "30");
+        delay = 20;//Integer.parseInt(intervalStr);
         Intent _intent = new Intent(context, AlarmBroadcastReceiver.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, _intent, 0);
         AlarmManager alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
@@ -272,5 +296,65 @@ public class MainActivity extends AppCompatActivity   {
         alarmManager.cancel(pendingIntent);
         alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + delay, pendingIntent);
     }
+    public static void startAlarm(Context context, int minutes) {
+      //  Logger.print("AlarmReceiver startAlarm  called");
+        Intent alarmIntent = new Intent(context, WakefulBroadcastReceiver.class);
+        alarmIntent.setAction("testAPP");
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 123451, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        manager.cancel(pendingIntent);
+        long alarmPeriodicTime = System.currentTimeMillis() + 10000;
+        if (Build.VERSION.SDK_INT >= 23) {
+            manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmPeriodicTime, pendingIntent);
+        } else if (Build.VERSION.SDK_INT >= 19) {
+            manager.setExact(AlarmManager.RTC_WAKEUP, alarmPeriodicTime, pendingIntent);
+        } else {
+            manager.set(AlarmManager.RTC_WAKEUP, alarmPeriodicTime, pendingIntent);
+        }
+    }
+
+    public  void showNotification(Context context, Intent intent) {
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        String articleKindstr = sp.getString("list_kind", "0");
+        int articleKind = Integer.parseInt(articleKindstr) ;
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        int notificationId = 1;
+        String channelId = "channel-01";
+        String channelName = "Channel Name";
+        int importance = NotificationManager.IMPORTANCE_HIGH;
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            NotificationChannel mChannel = new NotificationChannel(
+                    channelId, channelName, importance);
+            notificationManager.createNotificationChannel(mChannel);
+        }
+
+        //
+        NewsArticle notifItem;
+        if(articleKind == 0 ) { // news
+             notifItem = newsArticles.get(0);
+        }
+        else {
+            notifItem = sportNewsArticles.get(0);
+        }
+        //
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context, channelId)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(notifItem.getTitle())
+                .setContentText(notifItem.getContent());
+
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+        stackBuilder.addNextIntent(intent);
+        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(
+                0,
+                PendingIntent.FLAG_UPDATE_CURRENT
+        );
+        mBuilder.setContentIntent(resultPendingIntent);
+
+        notificationManager.notify(notificationId, mBuilder.build());
+    }
+
 
 }

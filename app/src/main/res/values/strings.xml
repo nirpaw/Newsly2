@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Newsly2</string>
+    <string name="app_name">Newsly</string>
     <string name="title_activity_show_article">ShowArticleActivity</string>
     <string name="large_text">
         "Material is the metaphor.\n\n"
@@ -104,5 +104,15 @@
         <item>60</item>
         <item>86400</item>
         <item>604800</item>
+    </string-array>
+
+    <string-array name="subject">
+        <item>MTV news</item>
+        <item>Sport news</item>
+    </string-array>
+
+    <string-array name="subject_value">
+        <item>0</item>
+        <item>1</item>
     </string-array>
 </resources>
