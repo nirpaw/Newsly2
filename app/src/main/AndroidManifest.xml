@@ -13,6 +13,10 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+
+
+
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,7 +31,15 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".SettingsActivity" />
 
-        <receiver android:name="org.yccheok.AlarmBroadcastReceiver" >
+        <receiver android:name="AlarmBroadcastReceiver" >
+        </receiver>
+
+        <receiver android:name=".LocalNotificationReceiver">
+            <intent-filter>
+                <action android:name="${applicationId}.action.LOCAL_NOTIFICATION" />
+                <category android:name="com.category.LocalNotification" />
+            </intent-filter>
+
         </receiver>
 
     </application>

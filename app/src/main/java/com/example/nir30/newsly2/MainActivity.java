@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
     final int SETTINGS_REQUEST = 1;
     boolean notificationCBIsEnable;
     int intervalNotificationInSec = -1;
+    AlarmManager alarmManager;
 
     static final String NEWS_SOURCE = "mtv-news";
     static final String SPORT_NEWS_SOURCE = "bbc-sport";
@@ -88,15 +89,28 @@ public class MainActivity extends AppCompatActivity {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
             notificationCBIsEnable = sharedPreferences.getBoolean("pref_checkbox", false);
             if (notificationCBIsEnable) {
+
+
                 // delete
                 SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
                 String intervalStr = sp.getString("list_interval", "-1");
                 intervalNotificationInSec = Integer.parseInt(intervalStr);
+
+                String articleKindstr = sp.getString("list_kind", "0");
+                int articleKind = Integer.parseInt(articleKindstr) ;
+
+
                 //
 
-                startAlarm(MainActivity.this,1);
-            //    startAlarmBroadcastReceiver(this, 2);
-             //   showNotification(MainActivity.this ,  new Intent());
+                Intent intent = new Intent(MainActivity.this , NotificationSendReceiver.class);
+                intent.putExtra("intervalInSec",intervalNotificationInSec );
+                intent.putExtra("kindArticle", articleKind );
+
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this,
+                        0 , intent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + intervalNotificationInSec*1000, pendingIntent );
+
                 Toast.makeText(this, intervalNotificationInSec + "", Toast.LENGTH_SHORT).show();
             }
         }
@@ -108,6 +122,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         final int SETTINGS_REQUEST = 1;
+
+        alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
         sportRecyclerView = findViewById(R.id.news_sport_recycler);
         sportRecyclerView.addOnItemTouchListener(
                 new RecyclerItemClickListener(this, sportRecyclerView, new RecyclerItemClickListener.OnItemClickListener() {
@@ -273,7 +289,6 @@ public class MainActivity extends AppCompatActivity {
                 SportNewsArticleAdapter sportNewsArticleAdapter = new SportNewsArticleAdapter(sportNewsArticles);
                 sportRecyclerView.setAdapter(sportNewsArticleAdapter);
 
-
             } else {
                 Toast.makeText(getApplicationContext(), "No news found", Toast.LENGTH_SHORT).show();
             }
@@ -282,36 +297,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void myStartAlarm(){
-
-    }
-    public  void startAlarmBroadcastReceiver(Context context, long delay) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        String intervalStr = sp.getString("list_interval", "30");
-        delay = 20;//Integer.parseInt(intervalStr);
-        Intent _intent = new Intent(context, AlarmBroadcastReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, _intent, 0);
-        AlarmManager alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-        // Remove any previous pending intent.
-        alarmManager.cancel(pendingIntent);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + delay, pendingIntent);
-    }
-    public static void startAlarm(Context context, int minutes) {
-      //  Logger.print("AlarmReceiver startAlarm  called");
-        Intent alarmIntent = new Intent(context, WakefulBroadcastReceiver.class);
-        alarmIntent.setAction("testAPP");
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 123451, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-        AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        manager.cancel(pendingIntent);
-        long alarmPeriodicTime = System.currentTimeMillis() + 10000;
-        if (Build.VERSION.SDK_INT >= 23) {
-            manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmPeriodicTime, pendingIntent);
-        } else if (Build.VERSION.SDK_INT >= 19) {
-            manager.setExact(AlarmManager.RTC_WAKEUP, alarmPeriodicTime, pendingIntent);
-        } else {
-            manager.set(AlarmManager.RTC_WAKEUP, alarmPeriodicTime, pendingIntent);
-        }
-    }
 
     public  void showNotification(Context context, Intent intent) {
 
@@ -356,5 +341,16 @@ public class MainActivity extends AppCompatActivity {
         notificationManager.notify(notificationId, mBuilder.build());
     }
 
+    public NewsArticle getMostRecentNewsByType(int type){
+
+        NewsArticle latest ;
+        if(type == 0 ){
+            latest = newsArticles.get(0);
+        }
+        else {
+            latest = sportNewsArticles.get(0);
+        }
+        return latest;
+    }
 
 }
